@@ -6,10 +6,12 @@ export function useNotifications(
   credentials: Credentials | null,
   chats: Chat[],
   onMessage: (msg: Message) => void,
+  onNewChat?: (chat: Chat) => void,
 ) {
   const apiRef = useRef<ReturnType<typeof createApi> | null>(null)
   const chatsRef = useRef(chats)
   const onMessageRef = useRef(onMessage)
+  const onNewChatRef = useRef(onNewChat)
   const backoffRef = useRef(1500)
 
   useEffect(() => {
@@ -19,6 +21,10 @@ export function useNotifications(
   useEffect(() => {
     onMessageRef.current = onMessage
   }, [onMessage])
+
+  useEffect(() => {
+    onNewChatRef.current = onNewChat
+  }, [onNewChat])
 
   useEffect(() => {
     if (credentials) {
@@ -46,10 +52,6 @@ export function useNotifications(
 
         const { receiptId, body } = notification
 
-        const isChat = chatsRef.current.some(
-          (c) => c.chatId === body.senderData.chatId,
-        )
-
         const { messageData } = body
         const text =
           messageData.textMessageData?.textMessage ??
@@ -60,19 +62,27 @@ export function useNotifications(
             messageData.typeMessage === 'extendedTextMessage') &&
           typeof text === 'string'
 
-        if (
-          (body.typeWebhook === 'incomingMessageReceived' ||
-            body.typeWebhook === 'outgoingMessageReceived') &&
-          isTextLike &&
-          isChat
-        ) {
-          onMessageRef.current({
-            id: body.idMessage,
-            chatId: body.senderData.chatId,
-            text: text!,
-            timestamp: body.timestamp,
-            isOutgoing: body.typeWebhook === 'outgoingMessageReceived',
-          })
+        const isIncoming = body.typeWebhook === 'incomingMessageReceived'
+        const isOutgoing = body.typeWebhook === 'outgoingMessageReceived'
+
+        if ((isIncoming || isOutgoing) && isTextLike) {
+          const chatId = body.senderData.chatId
+          const isKnownChat = chatsRef.current.some((c) => c.chatId === chatId)
+
+          if (!isKnownChat && isIncoming && onNewChatRef.current) {
+            const phoneNumber = body.senderData.senderPhoneNumber?.toString() || chatId
+            onNewChatRef.current({ chatId, phoneNumber })
+          }
+
+          if (isKnownChat || (isIncoming && onNewChatRef.current)) {
+            onMessageRef.current({
+              id: body.idMessage,
+              chatId,
+              text: text!,
+              timestamp: body.timestamp,
+              isOutgoing,
+            })
+          }
         }
 
         await api.deleteNotification(receiptId)

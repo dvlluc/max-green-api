@@ -36,7 +36,13 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
     [],
   )
 
-  useNotifications(credentials, chats, handleNewMessage)
+  useNotifications(credentials, chats, handleNewMessage, (chat) => {
+    setChats((prev) => {
+      if (prev.some((c) => c.chatId === chat.chatId)) return prev
+      return [...prev, chat]
+    })
+    setActiveChatId(chat.chatId)
+  })
 
   const handleAddChat = useCallback(async (identifier: string) => {
     setError('')
