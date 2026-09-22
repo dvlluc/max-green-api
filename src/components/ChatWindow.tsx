@@ -18,6 +18,7 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Record<string, Message[]>>({})
   const [error, setError] = useState('')
+  const [pollError, setPollError] = useState('')
   const [addingChat, setAddingChat] = useState(false)
 
   const api = useMemo(() => createApi(credentials), [credentials])
@@ -36,13 +37,21 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
     [],
   )
 
-  useNotifications(credentials, chats, handleNewMessage, (chat) => {
-    setChats((prev) => {
-      if (prev.some((c) => c.chatId === chat.chatId)) return prev
-      return [...prev, chat]
-    })
-    setActiveChatId(chat.chatId)
-  })
+  const appendChat = useCallback((chat: Chat) => {
+    setChats((prev) =>
+      prev.some((c) => c.chatId === chat.chatId) ? prev : [...prev, chat],
+    )
+  }, [])
+
+  const handleNewChat = useCallback(
+    (chat: Chat) => {
+      appendChat(chat)
+      setActiveChatId((prev) => prev ?? chat.chatId)
+    },
+    [appendChat],
+  )
+
+  useNotifications(credentials, chats, handleNewMessage, handleNewChat, setPollError)
 
   const handleAddChat = useCallback(async (identifier: string) => {
     setError('')
@@ -65,17 +74,14 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
         phoneNumber: identifier,
       }
 
-      setChats((prev) => {
-        if (prev.some((c) => c.chatId === chat.chatId)) return prev
-        return [...prev, chat]
-      })
+      appendChat(chat)
       setActiveChatId(chat.chatId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка проверки аккаунта')
     } finally {
       setAddingChat(false)
     }
-  }, [api])
+  }, [api, appendChat])
 
   const handleSend = useCallback(async (text: string) => {
     if (!activeChatId) return
@@ -135,9 +141,9 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
 
         <PhoneInput onAdd={handleAddChat} loading={addingChat} />
 
-        {error && (
+        {(error || pollError) && (
           <div className="px-4 py-2 bg-[var(--button-negative)]/10 text-[var(--text-negative)] text-xs">
-            {error}
+            {error || pollError}
           </div>
         )}
 

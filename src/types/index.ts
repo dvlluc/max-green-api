@@ -28,8 +28,8 @@ export interface ReceiveNotificationResponse {
 export interface NotificationBody {
   typeWebhook: string
   timestamp: number
-  idMessage: string
-  senderData: {
+  idMessage?: string
+  senderData?: {
     chatId: string
     chatName: string
     chatType: string
@@ -37,7 +37,7 @@ export interface NotificationBody {
     senderName: string
     senderPhoneNumber?: number
   }
-  messageData: {
+  messageData?: {
     typeMessage: string
     textMessageData?: { textMessage: string }
     extendedTextMessageData?: { text: string; stanzaId?: string; participant?: string }
