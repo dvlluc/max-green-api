@@ -50,33 +50,28 @@ export function useNotifications(
           (c) => c.chatId === body.senderData.chatId,
         )
 
-        const isTextMessage =
-          body.messageData.typeMessage === 'textMessage' &&
-          body.messageData.textMessageData
+        const { messageData } = body
+        const text =
+          messageData.textMessageData?.textMessage ??
+          messageData.extendedTextMessageData?.text
+        const isTextLike =
+          (messageData.typeMessage === 'textMessage' ||
+            messageData.typeMessage === 'quotedMessage' ||
+            messageData.typeMessage === 'extendedTextMessage') &&
+          typeof text === 'string'
 
         if (
-          body.typeWebhook === 'incomingMessageReceived' &&
-          isTextMessage &&
+          (body.typeWebhook === 'incomingMessageReceived' ||
+            body.typeWebhook === 'outgoingMessageReceived') &&
+          isTextLike &&
           isChat
         ) {
           onMessageRef.current({
             id: body.idMessage,
             chatId: body.senderData.chatId,
-            text: body.messageData.textMessageData!.textMessage,
+            text: text!,
             timestamp: body.timestamp,
-            isOutgoing: false,
-          })
-        } else if (
-          body.typeWebhook === 'outgoingMessageReceived' &&
-          isTextMessage &&
-          isChat
-        ) {
-          onMessageRef.current({
-            id: body.idMessage,
-            chatId: body.senderData.chatId,
-            text: body.messageData.textMessageData!.textMessage,
-            timestamp: body.timestamp,
-            isOutgoing: true,
+            isOutgoing: body.typeWebhook === 'outgoingMessageReceived',
           })
         }
 

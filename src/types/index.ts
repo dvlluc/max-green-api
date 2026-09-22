@@ -40,6 +40,7 @@ export interface NotificationBody {
   messageData: {
     typeMessage: string
     textMessageData?: { textMessage: string }
+    extendedTextMessageData?: { text: string; stanzaId?: string; participant?: string }
   }
 }
 
