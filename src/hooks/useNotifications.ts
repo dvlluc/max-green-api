@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react'
-import type { Credentials, Chat, Message, NotificationBody } from '../types'
-import { createApi } from '../api/greenApi'
+import type {
+  Credentials,
+  Chat,
+  Message,
+  NotificationBody,
+  ReceiveNotificationResponse,
+} from '../types'
+import { createApi, isTransientError } from '../api/greenApi'
 
 const TEXT_MESSAGE_TYPES = new Set(['textMessage', 'quotedMessage', 'extendedTextMessage'])
 
@@ -71,15 +77,30 @@ export function useNotifications(
 
     let timerId: ReturnType<typeof setTimeout> | null = null
     let stopped = false
+    const controller = new AbortController()
 
     function schedule() {
       if (!stopped) timerId = setTimeout(poll, backoffRef.current)
     }
 
-    function failPoll(message: string) {
+    function failPoll(message?: string) {
       backoffRef.current = Math.min(backoffRef.current * 2, 10000)
-      onPollErrorRef.current?.(message)
+      if (message) onPollErrorRef.current?.(message)
       schedule()
+    }
+
+    function reportPollError(err: unknown, prefix?: string) {
+      if (stopped) return
+
+      if (isTransientError(err)) {
+        console.debug('Штатная ошибка polling, повторяем:', err)
+        failPoll()
+        return
+      }
+
+      console.error('Ошибка polling:', err)
+      const message = err instanceof Error ? err.message : 'Ошибка получения уведомлений'
+      failPoll(prefix ? `${prefix}: ${message}` : message)
     }
 
     function handleNotification(body: NotificationBody) {
@@ -103,14 +124,11 @@ export function useNotifications(
     async function poll() {
       if (stopped) return
 
-      let notification = null
+      let notification: ReceiveNotificationResponse | null = null
       try {
-        notification = await client.receiveNotification()
+        notification = await client.receiveNotification(controller.signal)
       } catch (err) {
-        console.error('Ошибка receiveNotification:', err)
-        failPoll(
-          err instanceof Error ? err.message : 'Ошибка получения уведомлений',
-        )
+        reportPollError(err)
         return
       }
 
@@ -121,16 +139,13 @@ export function useNotifications(
           console.error('Ошибка обработки уведомления:', err)
         }
 
-        try {
-          await client.deleteNotification(notification.receiptId)
-        } catch (err) {
-          console.error('Ошибка deleteNotification:', err)
-          failPoll(
-            err instanceof Error
-              ? `Не удалось подтвердить уведомление: ${err.message}`
-              : 'Не удалось подтвердить уведомление',
-          )
-          return
+        if (typeof notification.receiptId === 'number') {
+          try {
+            await client.deleteNotification(notification.receiptId, controller.signal)
+          } catch (err) {
+            reportPollError(err, 'Не удалось подтвердить уведомление')
+            return
+          }
         }
       }
 
@@ -143,6 +158,7 @@ export function useNotifications(
 
     return () => {
       stopped = true
+      controller.abort()
       if (timerId !== null) clearTimeout(timerId)
     }
   }, [api])
