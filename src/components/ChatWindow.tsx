@@ -84,38 +84,33 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
     }
   }, [api, appendChat])
 
-  const handleSend = useCallback(
-    async (text: string): Promise<boolean> => {
-      if (!activeChatId) return false
-      setError('')
+  const handleSend = useCallback(async (text: string) => {
+    if (!activeChatId) return
+    setError('')
 
-      try {
-        const result = await api.sendMessage(activeChatId, text)
+    try {
+      const result = await api.sendMessage(activeChatId, text)
 
-        const msg: Message = {
-          id: result.idMessage,
-          chatId: activeChatId,
-          text,
-          timestamp: Math.floor(Date.now() / 1000),
-          isOutgoing: true,
-        }
-
-        setMessages((prev) => {
-          const chatMessages = prev[activeChatId] || []
-          if (chatMessages.some((m) => m.id === msg.id)) return prev
-          return {
-            ...prev,
-            [activeChatId]: [...chatMessages, msg],
-          }
-        })
-        return true
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ошибка отправки')
-        return false
+      const msg: Message = {
+        id: result.idMessage,
+        chatId: activeChatId,
+        text,
+        timestamp: Math.floor(Date.now() / 1000),
+        isOutgoing: true,
       }
-    },
-    [activeChatId, api],
-  )
+
+      setMessages((prev) => {
+        const chatMessages = prev[activeChatId] || []
+        if (chatMessages.some((m) => m.id === msg.id)) return prev
+        return {
+          ...prev,
+          [activeChatId]: [...chatMessages, msg],
+        }
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка отправки')
+    }
+  }, [activeChatId, api])
 
   const activeChatName = useMemo(
     () => chats.find((c) => c.chatId === activeChatId)?.phoneNumber || activeChatId,
@@ -123,11 +118,6 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
   )
 
   const handleBack = () => setActiveChatId(null)
-
-  const handleSelectChat = useCallback((chatId: string) => {
-    setError('')
-    setActiveChatId(chatId)
-  }, [])
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
@@ -164,7 +154,7 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
         <ChatList
           chats={chats}
           activeChatId={activeChatId}
-          onSelect={handleSelectChat}
+          onSelect={setActiveChatId}
         />
       </div>
 
@@ -190,11 +180,6 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
                 {activeChatName}
               </Typography.Title>
             </div>
-            {(error || pollError) && (
-              <div className="px-4 py-2 bg-[var(--button-negative)]/10 text-[var(--text-negative)] text-xs md:hidden">
-                {error || pollError}
-              </div>
-            )}
             <MessageList messages={messages[activeChatId] || []} />
             <MessageInput onSend={handleSend} />
           </>
