@@ -5,17 +5,17 @@ import ChatWindow from './components/ChatWindow'
 
 export default function App() {
   const [credentials, setCredentials] = useState<Credentials | null>(() => {
-    const stored = localStorage.getItem('max-chat-creds')
+    const stored = localStorage.getItem('green-chat-creds')
     return stored ? JSON.parse(stored) : null
   })
 
   const handleConnect = (creds: Credentials) => {
-    localStorage.setItem('max-chat-creds', JSON.stringify(creds))
+    localStorage.setItem('green-chat-creds', JSON.stringify(creds))
     setCredentials(creds)
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('max-chat-creds')
+    localStorage.removeItem('green-chat-creds')
     setCredentials(null)
   }
 

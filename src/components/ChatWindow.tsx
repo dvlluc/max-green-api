@@ -66,7 +66,7 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
       }
 
       if (!result.exist || !result.chatId) {
-        setError('Пользователь не найден в MAX')
+        setError('Пользователь не найден в мессенджере')
         return
       }
 
@@ -129,12 +129,15 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
         style={{ height: '100vh', flexShrink: 0 }}
       >
         <div
-          className="px-4 pr-40 md:pr-4 py-3 bg-[var(--background-primary)] border-b border-[var(--divider-primary)]"
+          className="px-4 pr-15 md:pr-4 py-3 bg-[var(--background-primary)] border-b border-[var(--divider-primary)]"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
         >
-          <Typography.Title variant="small-strong" color="primary">
-            MAX Chat
-          </Typography.Title>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src="/icon.svg" alt="" className="w-7 h-7" aria-hidden="true" />
+            <Typography.Title variant="small-strong" color="primary">
+              G Chat
+            </Typography.Title>
+          </div>
           <Button variant="ghost" size="small" onClick={onLogout}>
             Выйти
           </Button>

@@ -19,11 +19,11 @@ const setupSteps: SetupStep[] = [
   },
   {
     title: "Создайте инстанс",
-    text: "Создайте инстанс с типом MAX",
+    text: "Создайте инстанс с типом MAX или Telegram — приложение работает с обоими мессенджерами",
   },
   {
     title: "Сканируйте QR-код",
-    text: "В приложении MAX: Профиль → Устройства → Войти по QR-коду",
+    text: "MAX: Профиль → Устройства → Войти по QR-коду. Telegram: Настройки → Устройства → Подключить устройство",
   },
   {
     title: "Включите вебхуки",
@@ -35,7 +35,7 @@ const setupSteps: SetupStep[] = [
   },
   {
     title: "Начните общаться",
-    text: "Введите номер телефона получателя (например 79161234567) и начните общаться",
+    text: "Введите номер телефона или username получателя и начните общаться",
   },
   {
     title: "Победа!",
@@ -67,7 +67,7 @@ export default function HelpDrawer({ open, onClose }: Props) {
         aria-modal="true"
         aria-label="Инструкция: как пользоваться"
         aria-hidden={!open}
-        className={`fixed top-0 right-0 z-50 h-full w-full sm:w-[26rem] max-w-full bg-[var(--background-primary)] border-l border-[var(--divider-primary)] shadow-[-8px_0_40px_rgba(0,0,0,0.18)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col ${
+        className={`fixed top-0 right-0 z-50 h-full w-full md:w-[26rem] max-w-full bg-[var(--background-primary)] border-l border-[var(--divider-primary)] shadow-[-8px_0_40px_rgba(0,0,0,0.18)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         style={{ borderRadius: "16px 0 0 16px" }}
@@ -78,22 +78,12 @@ export default function HelpDrawer({ open, onClose }: Props) {
           className="shrink-0 px-6 py-5 border-b border-[var(--divider-primary)]"
         >
           <Flex align="center" gap={12}>
-            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--text-themed)]/12 text-[var(--text-themed)]">
-              <svg
-                viewBox="0 0 24 24"
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 16v-4" />
-                <path d="M12 8h.01" />
-              </svg>
-            </span>
+            <img
+              src="/icon.svg"
+              alt=""
+              className="w-9 h-9 rounded-xl"
+              aria-hidden="true"
+            />
             <div>
               <Typography.Title variant="small-strong">
                 Как пользоваться

@@ -46,12 +46,12 @@ export default function LoginForm({ onConnect }: Props) {
         onSubmit={handleSubmit}
         className="bg-[var(--background-primary)] rounded-2xl shadow-lg p-8 w-full max-w-sm"
       >
-        <Typography.Title
-          variant="large-strong"
-          className="block mb-6 text-center"
-        >
-          MAX Chat
-        </Typography.Title>
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <img src="/icon.svg" alt="" className="w-9 h-9" aria-hidden="true" />
+          <Typography.Title variant="large-strong" className="block">
+            G Chat
+          </Typography.Title>
+        </div>
 
         <Container className="mb-4">
           <Typography.Label
@@ -83,15 +83,13 @@ export default function LoginForm({ onConnect }: Props) {
           />
         </Container>
 
-        <Container className="mb-4">
-          {error && (
-            <div className="block mb-4 text-[var(--text-negative)] text-xs">
-              {error}
-            </div>
-          )}
-        </Container>
+        {error && (
+          <div className="block mb-4 text-[var(--text-negative)] text-xs">
+            {error}
+          </div>
+        )}
 
-        <Container className="mb-4">
+        <Container>
           <Button
             type="submit"
             variant="primary"

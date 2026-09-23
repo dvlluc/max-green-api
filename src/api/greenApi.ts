@@ -77,7 +77,7 @@ function friendlyMessage(
     return 'У инстанса задан Webhook URL — очистите его в console.green-api.com, иначе polling не будет получать уведомления'
   }
   if (serverMessage && /not authorized/i.test(serverMessage)) {
-    return 'Инстанс не авторизован — войдите в MAX по QR-коду'
+    return 'Инстанс не авторизован — войдите в мессенджер по QR-коду'
   }
   if (serverMessage) return serverMessage
 
