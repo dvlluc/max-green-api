@@ -7,6 +7,7 @@ import PhoneInput from './PhoneInput'
 import ChatList from './ChatList'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
+import HelpButton from './HelpButton'
 
 interface Props {
   credentials: Credentials
@@ -128,7 +129,7 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
         style={{ height: '100vh', flexShrink: 0 }}
       >
         <div
-          className="px-4 py-3 bg-[var(--background-primary)] border-b border-[var(--divider-primary)]"
+          className="px-4 pr-40 md:pr-4 py-3 bg-[var(--background-primary)] border-b border-[var(--divider-primary)]"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
         >
           <Typography.Title variant="small-strong" color="primary">
@@ -190,6 +191,8 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
           </div>
         )}
       </div>
+
+      <HelpButton />
     </div>
-  )
+  );
 }

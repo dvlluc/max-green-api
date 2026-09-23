@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Input, Typography, Container, Flex } from "@maxhub/max-ui";
 import type { Credentials } from "../types";
 import { createApi } from "../api/greenApi";
+import HelpButton from "./HelpButton";
 
 interface Props {
   onConnect: (creds: Credentials) => void;
@@ -102,6 +103,8 @@ export default function LoginForm({ onConnect }: Props) {
           </Button>
         </Container>
       </form>
+
+      <HelpButton />
     </Flex>
   );
 }
