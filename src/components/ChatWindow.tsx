@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Button, Typography } from '@maxhub/max-ui'
 import type { Credentials, Chat, Message } from '../types'
 import { createApi } from '../api/greenApi'
@@ -8,6 +8,7 @@ import ChatList from './ChatList'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
 import HelpButton from './HelpButton'
+import { formatPhone } from '../utils/phone'
 
 interface Props {
   credentials: Credentials
@@ -18,25 +19,37 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
   const [chats, setChats] = useState<Chat[]>([])
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Record<string, Message[]>>({})
+  const [unread, setUnread] = useState<Record<string, number>>({})
   const [error, setError] = useState('')
   const [pollError, setPollError] = useState('')
   const [addingChat, setAddingChat] = useState(false)
 
   const api = useMemo(() => createApi(credentials), [credentials])
 
-  const handleNewMessage = useCallback(
-    (msg: Message) => {
-      setMessages((prev) => {
-        const chatMessages = prev[msg.chatId] || []
-        if (chatMessages.some((m) => m.id === msg.id)) return prev
-        return {
-          ...prev,
-          [msg.chatId]: [...chatMessages, msg],
-        }
-      })
-    },
-    [],
-  )
+  const activeChatIdRef = useRef(activeChatId)
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId
+  }, [activeChatId])
+
+  const handleNewMessage = useCallback((msg: Message) => {
+    setMessages((prev) => {
+      const chatMessages = prev[msg.chatId] || []
+      if (chatMessages.some((m) => m.id === msg.id)) return prev
+      return {
+        ...prev,
+        [msg.chatId]: [...chatMessages, msg],
+      }
+    })
+    if (!msg.isOutgoing && msg.chatId !== activeChatIdRef.current) {
+      setUnread((prev) => ({ ...prev, [msg.chatId]: (prev[msg.chatId] ?? 0) + 1 }))
+    }
+  }, [])
+
+  const openChat = useCallback((chatId: string) => {
+    activeChatIdRef.current = chatId
+    setActiveChatId(chatId)
+    setUnread((prev) => (prev[chatId] ? { ...prev, [chatId]: 0 } : prev))
+  }, [])
 
   const appendChat = useCallback((chat: Chat) => {
     setChats((prev) =>
@@ -47,9 +60,9 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
   const handleNewChat = useCallback(
     (chat: Chat) => {
       appendChat(chat)
-      setActiveChatId((prev) => prev ?? chat.chatId)
+      if (activeChatIdRef.current === null) openChat(chat.chatId)
     },
-    [appendChat],
+    [appendChat, openChat],
   )
 
   useNotifications(credentials, chats, handleNewMessage, handleNewChat, setPollError)
@@ -76,13 +89,13 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
       }
 
       appendChat(chat)
-      setActiveChatId(chat.chatId)
+      openChat(chat.chatId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка проверки аккаунта')
     } finally {
       setAddingChat(false)
     }
-  }, [api, appendChat])
+  }, [api, appendChat, openChat])
 
   const handleSend = useCallback(async (text: string) => {
     if (!activeChatId) return
@@ -112,12 +125,26 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
     }
   }, [activeChatId, api])
 
-  const activeChatName = useMemo(
-    () => chats.find((c) => c.chatId === activeChatId)?.phoneNumber || activeChatId,
-    [chats, activeChatId],
-  )
+  const activeChatName = useMemo(() => {
+    const chat = chats.find((c) => c.chatId === activeChatId)
+    return chat ? formatPhone(chat.phoneNumber) : activeChatId
+  }, [chats, activeChatId])
 
-  const handleBack = () => setActiveChatId(null)
+  const lastMessages = useMemo(() => {
+    const result: Record<string, Message> = {}
+    for (const chat of chats) {
+      const chatMessages = messages[chat.chatId]
+      if (chatMessages && chatMessages.length > 0) {
+        result[chat.chatId] = chatMessages[chatMessages.length - 1]
+      }
+    }
+    return result
+  }, [chats, messages])
+
+  const handleBack = () => {
+    activeChatIdRef.current = null
+    setActiveChatId(null)
+  }
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
@@ -153,8 +180,10 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
 
         <ChatList
           chats={chats}
+          lastMessages={lastMessages}
+          unread={unread}
           activeChatId={activeChatId}
-          onSelect={setActiveChatId}
+          onSelect={openChat}
         />
       </div>
 
