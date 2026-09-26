@@ -8,6 +8,7 @@ import ChatList from './ChatList'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
 import HelpButton from './HelpButton'
+import ChatAvatar from './ChatAvatar'
 import { formatPhone } from '../utils/phone'
 
 interface Props {
@@ -157,7 +158,7 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
       >
         <div
           className="px-4 pr-15 md:pr-4 py-3 bg-[var(--background-primary)] border-b border-[var(--divider-primary)]"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
+          style={{ display: 'flex', alignItems: 'center', width: '100%' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <img src="/icon.svg" alt="" className="w-7 h-7" aria-hidden="true" />
@@ -165,9 +166,6 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
               G Chat
             </Typography.Title>
           </div>
-          <Button variant="ghost" size="small" onClick={onLogout}>
-            Выйти
-          </Button>
         </div>
 
         <PhoneInput onAdd={handleAddChat} loading={addingChat} />
@@ -185,6 +183,12 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
           activeChatId={activeChatId}
           onSelect={openChat}
         />
+
+        <div className="p-2 border-t border-[var(--divider-primary)]">
+          <Button variant="ghost" size="small" onClick={onLogout} className="w-full">
+            Выйти
+          </Button>
+        </div>
       </div>
 
       <div
@@ -198,14 +202,15 @@ export default function ChatWindow({ credentials, onLogout }: Props) {
           <>
             <div
               className="px-4 py-3 bg-[var(--background-primary)] border-b border-[var(--divider-primary)]"
-              style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minWidth: 0 }}
             >
               <Button variant="ghost" size="small" onClick={handleBack} className="md:hidden">
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
                   <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
                 </svg>
               </Button>
-              <Typography.Title variant="small-strong">
+              <ChatAvatar chatId={activeChatId} size={36} />
+              <Typography.Title variant="small-strong" className="truncate">
                 {activeChatName}
               </Typography.Title>
             </div>
