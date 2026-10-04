@@ -2,6 +2,8 @@
 
 Универсальный чат-клиент для мессенджеров **Telegram** и **MAX** через [GREEN-API](https://green-api.com).
 
+🌐 **Демо:** [https://max-chat-eta.vercel.app/](https://max-chat-eta.vercel.app/)
+
 ## Запуск
 
 ```bash
