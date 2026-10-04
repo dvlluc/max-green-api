@@ -1,4 +1,7 @@
-# G Chat
+<h1>
+  <img src="public/icon.svg" alt="G Chat" width="40" valign="middle" />
+  G Chat
+</h1>
 
 Универсальный чат-клиент для мессенджеров **Telegram** и **MAX** через [GREEN-API](https://green-api.com).
 
